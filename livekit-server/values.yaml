@@ -46,6 +46,7 @@ livekit:
     # domain: turn.myhost.com
     # secretName: <tlssecret>
     loadBalancerAnnotations: {}
+    # loadBalancerIP: <ip>
   # webhook: <webhook configuration>
   # room: <default settings for new rooms>
   # region: <set for multi-region deploys>
