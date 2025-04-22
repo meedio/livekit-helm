@@ -47,7 +47,13 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          args: ["--disable-strict-config"]
+          args:
+            - "--disable-strict-config"
+            {{- if .Values.extraArgs }}
+            {{- range .Values.extraArgs }}
+            - "{{ . }}"
+            {{- end }}
+            {{- end }}
           env:
             - name: LIVEKIT_CONFIG
               valueFrom:

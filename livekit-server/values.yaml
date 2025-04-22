@@ -154,3 +154,6 @@ serviceMonitor:
   name: ""
   # The scrape interval
   interval: 30s
+
+# Extra args for livekit-server
+extraArgs: []
