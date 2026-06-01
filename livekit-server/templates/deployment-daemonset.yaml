@@ -40,6 +40,8 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       hostNetwork: true
       {{- end }}
+      enableServiceLinks: false
+      enableServiceLinks: false
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       containers:
         - name: {{ .Chart.Name }}
