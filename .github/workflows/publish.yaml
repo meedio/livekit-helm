@@ -37,10 +37,13 @@ jobs:
             kv/data/harbor cicd-password | HARBOR_PASSWORD ;
 
       - name: Login to Harbor
+        env:
+          HELM_REGISTRY_USER: ${{ env.HARBOR_USER }}
+          HELM_REGISTRY_PASSWORD: ${{ env.HARBOR_PASSWORD }}
         run: |
-          echo "${{ env.HARBOR_PASSWORD }}" | \
+          echo "${HELM_REGISTRY_PASSWORD}" | \
             helm registry login registry.meedio.eu \
-              -u "${{ env.HARBOR_USER }}" \
+              -u "${HELM_REGISTRY_USER}" \
               --password-stdin
 
       - name: Package and push charts
