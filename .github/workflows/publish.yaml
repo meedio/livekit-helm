@@ -1,0 +1,56 @@
+name: Publish Charts to Harbor
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'livekit-server/**'
+      - 'ingress/**'
+      - 'egress/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: self-hosted-vms
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Import Harbor credentials from Vault
+        uses: hashicorp/vault-action@v2
+        with:
+          method: jwt
+          url: https://vault.admin-general.meedio.eu
+          role: github-pipeline
+          secrets: |
+            kv/data/harbor cicd-user | HARBOR_USER ;
+            kv/data/harbor cicd-password | HARBOR_PASSWORD ;
+
+      - name: Login to Harbor
+        run: |
+          echo "${{ env.HARBOR_PASSWORD }}" | \
+            helm registry login registry.meedio.eu \
+              -u "${{ env.HARBOR_USER }}" \
+              --password-stdin
+
+      - name: Package and push charts
+        run: |
+          mkdir -p dist
+          for chart_dir in livekit-server ingress egress; do
+            echo "Packaging $chart_dir..."
+            helm package "$chart_dir" -d dist/
+            chart_name=$(basename "$chart_dir")
+            tgz=$(ls dist/${chart_name}-*.tgz | tail -1)
+            echo "Pushing $tgz to oci://registry.meedio.eu/meedio..."
+            helm push "$tgz" oci://registry.meedio.eu/meedio
+          done
