@@ -117,8 +117,8 @@ spec:
           volumeMounts:
           {{- if .Values.storeKeysInSecret.enabled }}
             - name: keys-volume
-              mountPath: {{ .Values.livekit.key_file }}
-              subPath: {{ .Values.livekit.key_file }}
+              mountPath: /etc/livekit-keys
+              readOnly: true
           {{- end }}
           {{- if and .Values.livekit.turn.enabled .Values.livekit.turn.tls_port (not .Values.livekit.turn.external_tls) }}
             - name: lkturncert
