@@ -14,10 +14,16 @@ spec:
   {{- if .Values.livekit.turn.loadBalancerIP }}
   loadBalancerIP: {{ .Values.livekit.turn.loadBalancerIP }}
   {{- end }}
+  {{- if eq (default "LoadBalancer" .Values.livekit.turn.serviceType) "NodePort" }}
+  externalTrafficPolicy: {{ default "Local" .Values.livekit.turn.externalTrafficPolicy }}
+  {{- end }}
   ports:
     - port: 443
       targetPort: {{ .Values.livekit.turn.tls_port }}
       protocol: TCP
+      {{- if and (eq (default "LoadBalancer" .Values.livekit.turn.serviceType) "NodePort") .Values.livekit.turn.nodePort }}
+      nodePort: {{ .Values.livekit.turn.nodePort }}
+      {{- end }}
   selector:
     {{- include "livekit-server.selectorLabels" . | nindent 4 }}
 {{- end }}
