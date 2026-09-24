@@ -16,10 +16,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        k8s:
-          - "1.26"
-          - "1.25"
-          - "1.24"
+        include:
+          - k8s: "1.26"
+            node_image: kindest/node:v1.26.6
+          - k8s: "1.25"
+            node_image: kindest/node:v1.25.11
+          - k8s: "1.24"
+            node_image: kindest/node:v1.24.15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,14 +52,11 @@ jobs:
             --validate-maintainers=false
 
       - name: Create k8s cluster
-        run: |-
-          sudo snap install microk8s --channel="${{ matrix.k8s }}/stable" --classic
-          sudo microk8s.enable dns hostpath-storage
-          sudo microk8s.kubectl wait --for=condition=ready --timeout=60s node --all
-          sudo microk8s.kubectl wait --for=condition=ready --timeout=120s --namespace=kube-system pod --all
-          mkdir -p ~/.kube
-          sudo microk8s.config > ~/.kube/config
-          chmod 600 ~/.kube/config
+        uses: helm/kind-action@v1.8.0
+        with:
+          version: v0.20.0
+          cluster_name: ct-${{ matrix.k8s }}
+          node_image: ${{ matrix.node_image }}
 
       - name: Run chart-testing (install)
         run: |-
