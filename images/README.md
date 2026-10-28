@@ -25,7 +25,8 @@ build context:
    Dockerfile as `ARG` defaults; the shared build action takes no build args.
 4. Pin every external image to its `PINNED_IMAGES` digest. It stops on any image left unpinned.
 5. Append an `apk upgrade` or `apt-get dist-upgrade` to the final stage, keyed on a fresh
-   timestamp so the registry build cache never serves stale packages.
+   timestamp so the registry build cache never serves stale packages. `HOLD_PACKAGES` are
+   left at the version the build installed (egress holds Chrome to its pinned installer).
 
 [`verify.sh`](verify.sh) copies the binary out of the built image and checks `go version -m`
 for the Go version and the module versions.

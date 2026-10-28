@@ -30,6 +30,7 @@ fi
 
 echo "==> Cloning $UPSTREAM_REPO $UPSTREAM_TAG"
 git -c advice.detachedHead=false clone --quiet --depth 1 --branch "$UPSTREAM_TAG" "$UPSTREAM_REPO" "$out"
+out="$(cd "$out" && pwd)" # docker -v needs an absolute path
 commit="$(git -C "$out" rev-parse HEAD)"
 if [ "$commit" != "$UPSTREAM_COMMIT" ]; then
   echo "$UPSTREAM_TAG resolves to $commit, expected $UPSTREAM_COMMIT" >&2
@@ -110,6 +111,11 @@ case "$OS_REFRESH" in
   apt) refresh_cmd='apt-get update && apt-get -y dist-upgrade && apt-get clean && rm -rf /var/lib/apt/lists/*' ;;
   *) echo "unknown OS_REFRESH: $OS_REFRESH" >&2; exit 1 ;;
 esac
+hold="$(echo ${HOLD_PACKAGES:-})"
+if [ -n "$hold" ]; then
+  [ "$OS_REFRESH" = apt ] || { echo "HOLD_PACKAGES needs OS_REFRESH=apt" >&2; exit 1; }
+  refresh_cmd="apt-mark hold $hold && $refresh_cmd"
+fi
 {
   echo
   echo "# Added by meedio/livekit-helm images/prepare.sh: pull current OS security"
