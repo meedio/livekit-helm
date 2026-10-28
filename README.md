@@ -1,12 +1,13 @@
 
-LiveKit's helm charts are published on S3.
+Meedio's fork of the LiveKit Helm charts, published to Harbor as OCI charts:
+`oci://registry.meedio.eu/meedio/livekit-server`, `.../ingress` and `.../egress`.
 
-## Installing helm
+## Installing
 
-Add it to your helm repo with:
+Log in to Harbor with a robot account:
 
 ```shell
-helm repo add livekit https://helm.livekit.io
+helm registry login registry.meedio.eu -u '<HARBOR_USER>' --password-stdin
 ```
 
 Customize values in values-sample.yaml
@@ -35,7 +36,7 @@ Leave `instances` empty for a single shared config (previous behaviour).
 Then install the chart
 
 ```shell
-helm install <instance_name> livekit/livekit-server --namespace <namespace> --values values.yaml
+helm install <instance_name> oci://registry.meedio.eu/meedio/livekit-server --namespace <namespace> --values values.yaml
 ```
 
 ## For LiveKit Helm developers
@@ -43,11 +44,17 @@ helm install <instance_name> livekit/livekit-server --namespace <namespace> --va
 Each chart pins its default image by `image.digest`. Image findings that upstream has not
 fixed yet are listed, with a reason, in [`.grype.yaml`](.grype.yaml).
 
-Publishing requires helm-s3 plugin
+CI (`.github/workflows/`):
+
+- `test.yaml` runs `ct lint` and renders each chart in its supported layouts on every chart PR.
+- `scan-images.yaml` runs Grype on every image the charts render by default, with
+  `.grype.yaml`, and fails on a High or Critical finding. It runs on PRs, on master and weekly,
+  so new advisories against pinned images surface without a chart change.
+- `publish.yaml` packages and pushes every chart to Harbor on a push to master. Bump the
+  chart `version` in any PR that changes a chart.
+
+Scan locally with Docker:
 
 ```shell
-helm plugin install https://github.com/hypnoglow/helm-s3.git
-AWS_REGION=us-east-1 helm repo add livekit s3://livekit-helm
-
-./deploy.sh
+scripts/scan-images.sh
 ```
