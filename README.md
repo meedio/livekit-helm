@@ -48,8 +48,7 @@ CI (`.github/workflows/`):
 
 - `test.yaml` runs `ct lint` and renders each chart in its supported layouts on every chart PR.
 - `scan-images.yaml` runs Grype on every image the charts render by default, with
-  `.grype.yaml`, and fails on a High or Critical finding. It runs on PRs, on master and weekly,
-  so new advisories against pinned images surface without a chart change.
+  `.grype.yaml`, and fails on a High or Critical finding. It runs on chart PRs and on master.
 - `publish.yaml` packages and pushes every chart to Harbor on a push to master. Bump the
   chart `version` in any PR that changes a chart.
 

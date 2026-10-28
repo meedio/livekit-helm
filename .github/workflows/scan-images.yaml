@@ -1,13 +1,10 @@
 name: Scan Chart Images
 
 # Grype scan of every image the charts render by default, using .grype.yaml for findings
-# upstream has not fixed. Runs weekly too, so new advisories against pinned digests show up
-# without a chart change.
+# upstream has not fixed.
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 6 * * 1'
   push:
     branches:
       - master
