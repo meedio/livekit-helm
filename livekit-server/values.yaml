@@ -10,6 +10,11 @@ deploymentType: Deployment
 image:
   repository: livekit/livekit-server
   pullPolicy: IfNotPresent
+  # Defaults to the chart appVersion.
+  tag: ""
+  # sha256 digest of the multi-arch index of the default tag; the pull is pinned to it
+  # (repository:tag@digest). Set to "" when overriding repository or tag.
+  digest: sha256:25cd902de7cacbd5f1f779f6a6ac1eae20ba8f56b0935934ce6b0ab80d1e3d20
 
 imagePullSecrets: []
 
@@ -66,6 +71,13 @@ storeKeysInSecret:
 
 nameOverride: ""
 fullnameOverride: ""
+
+# Image for the `helm test` connection check (runs wget). Pinned to the
+# multi-arch index of alpine:3.24.3.
+testImage:
+  repository: alpine
+  tag: "3.24.3"
+  digest: sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
 
 loadBalancer:
   type: disable

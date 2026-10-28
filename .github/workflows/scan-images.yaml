@@ -1,0 +1,36 @@
+name: Scan Chart Images
+
+# Grype scan of every image the charts render by default, using .grype.yaml for findings
+# upstream has not fixed.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+    paths:
+      - 'ingress/**'
+      - 'egress/**'
+      - 'livekit-server/**'
+      - '.grype.yaml'
+      - 'scripts/scan-images.sh'
+      - '.github/workflows/scan-images.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: self-hosted-vms
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.17.2
+
+      - name: Scan images
+        run: scripts/scan-images.sh
