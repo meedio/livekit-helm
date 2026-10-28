@@ -9,8 +9,9 @@ image:
   pullPolicy: IfNotPresent
   # Defaults to the chart appVersion.
   tag: ""
-  # Optional sha256 digest; when set the pull is pinned to it (repository:tag@digest).
-  digest: ""
+  # sha256 digest of the multi-arch index of the default tag; the pull is pinned to it
+  # (repository:tag@digest). Set to "" when overriding repository or tag.
+  digest: sha256:ac244a40268ce1dd1510fbff6eb529609ec68aceff1602343f79be8ca08c355b
 
 # Rendered as the egress config.yaml. Since egress v1.15.0 a request-supplied S3
 # assume_role_external_id is rejected; set s3_assume_role_external_id for a server-side

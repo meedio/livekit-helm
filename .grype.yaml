@@ -1,0 +1,372 @@
+# Grype ignore rules for the images the charts pin by default.
+#
+# The charts already use the latest upstream releases. Each rule below is a Critical or High
+# finding those releases still carry, scoped to the exact package version, so it stops
+# matching as soon as an upstream image ships the fix. When bumping an image, rescan it
+# and delete the rules that no longer apply.
+#
+# Scanned 28 October 2026, Grype 0.121.0, linux/amd64. Medium and lower findings are not
+# listed; they are reported but do not fail a High gate.
+ignore:
+
+  # --- livekit/livekit-server:v1.13.11 ---
+
+  # golang.org/x/net v0.59.0 (go-module): upstream livekit/livekit-server:v1.13.11 has not picked up the fix yet.
+  - vulnerability: GO-2026-6603  # High; fixed in 0.60.0
+    package:
+      name: golang.org/x/net
+      version: v0.59.0
+      type: go-module
+  - vulnerability: GO-2026-6611  # High; fixed in 0.60.0
+    package:
+      name: golang.org/x/net
+      version: v0.59.0
+      type: go-module
+  - vulnerability: GO-2026-6612  # Critical; fixed in 0.60.0
+    package:
+      name: golang.org/x/net
+      version: v0.59.0
+      type: go-module
+  - vulnerability: GO-2026-6617  # High; fixed in 0.60.0
+    package:
+      name: golang.org/x/net
+      version: v0.59.0
+      type: go-module
+
+  # --- livekit/ingress:v1.5.0 ---
+
+  # github.com/go-jose/go-jose/v3 v3.0.4 (go-module): upstream livekit/ingress:v1.5.0 has not picked up the fix yet.
+  - vulnerability: GHSA-78h2-9frx-2jm8  # High; fixed in 3.0.5
+    package:
+      name: github.com/go-jose/go-jose/v3
+      version: v3.0.4
+      type: go-module
+  - vulnerability: GHSA-mgcc-cww5-fp2q  # High; fixed in none published
+    package:
+      name: github.com/go-jose/go-jose/v3
+      version: v3.0.4
+      type: go-module
+
+  # go.opentelemetry.io/otel v1.39.0 (go-module): upstream livekit/ingress:v1.5.0 has not picked up the fix yet.
+  - vulnerability: GHSA-mh2q-q3fh-2475  # High; fixed in 1.41.0
+    package:
+      name: go.opentelemetry.io/otel
+      version: v1.39.0
+      type: go-module
+
+  # golang.org/x/net v0.47.0 (go-module): upstream livekit/ingress:v1.5.0 has not picked up the fix yet.
+  - vulnerability: GO-2026-5026  # High; fixed in 0.55.0
+    package:
+      name: golang.org/x/net
+      version: v0.47.0
+      type: go-module
+  - vulnerability: GO-2026-5942  # High; fixed in 0.56.0
+    package:
+      name: golang.org/x/net
+      version: v0.47.0
+      type: go-module
+  - vulnerability: GO-2026-6603  # High; fixed in 0.60.0
+    package:
+      name: golang.org/x/net
+      version: v0.47.0
+      type: go-module
+  - vulnerability: GO-2026-6611  # High; fixed in 0.60.0
+    package:
+      name: golang.org/x/net
+      version: v0.47.0
+      type: go-module
+  - vulnerability: GO-2026-6612  # Critical; fixed in 0.60.0
+    package:
+      name: golang.org/x/net
+      version: v0.47.0
+      type: go-module
+  - vulnerability: GO-2026-6617  # High; fixed in 0.60.0
+    package:
+      name: golang.org/x/net
+      version: v0.47.0
+      type: go-module
+
+  # golang.org/x/text v0.35.0 (go-module): upstream livekit/ingress:v1.5.0 has not picked up the fix yet.
+  - vulnerability: GO-2026-5970  # High; fixed in 0.39.0
+    package:
+      name: golang.org/x/text
+      version: v0.35.0
+      type: go-module
+
+  # google.golang.org/grpc v1.77.0 (go-module): upstream livekit/ingress:v1.5.0 has not picked up the fix yet.
+  - vulnerability: GHSA-2v4p-qf9q-27wj  # High; fixed in 1.82.2
+    package:
+      name: google.golang.org/grpc
+      version: v1.77.0
+      type: go-module
+  - vulnerability: GHSA-hrxh-6v49-42gf  # High; fixed in 1.82.1
+    package:
+      name: google.golang.org/grpc
+      version: v1.77.0
+      type: go-module
+  - vulnerability: GHSA-p77j-4mvh-x3m3  # Critical; fixed in 1.79.3
+    package:
+      name: google.golang.org/grpc
+      version: v1.77.0
+      type: go-module
+  - vulnerability: GHSA-vp52-pcj8-j9qc  # High; fixed in 1.83.1
+    package:
+      name: google.golang.org/grpc
+      version: v1.77.0
+      type: go-module
+
+  # Go toolchain (stdlib) go1.25.0 (go-module): upstream livekit/ingress:v1.5.0 has not picked up the fix yet.
+  - vulnerability: GO-2025-4007  # High; fixed in 1.24.9, 1.25.3
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2025-4009  # High; fixed in 1.24.8, 1.25.2
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2025-4013  # High; fixed in 1.24.8, 1.25.2
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2025-4155  # High; fixed in 1.24.11, 1.25.5
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-4337  # Critical; fixed in 1.24.13, 1.25.7, 1.26.0-rc.3
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-4341  # High; fixed in 1.24.12, 1.25.6
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-4601  # High; fixed in 1.25.8, 1.26.1
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-4870  # High; fixed in 1.25.9, 1.26.2
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-4918  # High; fixed in 1.25.10, 1.26.3
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-4946  # High; fixed in 1.25.9, 1.26.2
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-4947  # High; fixed in 1.25.9, 1.26.2
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-4971  # High; fixed in 1.25.10, 1.26.3
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-4981  # High; fixed in 1.25.10, 1.26.3
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-5026  # High; fixed in 1.25.13, 1.26.6, 1.27.0-rc.3
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-5037  # High; fixed in 1.25.11, 1.26.4
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-5972  # High; fixed in 1.25.13, 1.26.6, 1.27.0-rc.3
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-6089  # High; fixed in 1.25.13, 1.26.6, 1.27.0-rc.3
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-6090  # High; fixed in 1.25.13, 1.26.6, 1.27.0-rc.3
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-6603  # High; fixed in 1.26.9
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-6605  # High; fixed in 1.26.9, 1.27.2
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-6607  # High; fixed in 1.26.9, 1.27.2
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-6608  # High; fixed in 1.26.9, 1.27.2
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-6610  # High; fixed in 1.26.9
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-6611  # High; fixed in 1.26.9
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-6612  # Critical; fixed in 1.26.9
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-6613  # High; fixed in 1.26.9, 1.27.2
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+  - vulnerability: GO-2026-6617  # High; fixed in 1.26.9
+    package:
+      name: stdlib
+      version: go1.25.0
+      type: go-module
+
+  # gpgv 2.4.4-2ubuntu17.3 (deb): upstream livekit/ingress:v1.5.0 has not picked up the fix yet.
+  - vulnerability: CVE-2025-68973  # High; fixed in 2.4.4-2ubuntu17.4
+    package:
+      name: gpgv
+      version: 2.4.4-2ubuntu17.3
+      type: deb
+
+  # libssl3t64 3.0.13-0ubuntu3.6 (deb): upstream livekit/ingress:v1.5.0 has not picked up the fix yet.
+  - vulnerability: CVE-2026-45447  # High; fixed in 3.0.13-0ubuntu3.11
+    package:
+      name: libssl3t64
+      version: 3.0.13-0ubuntu3.6
+      type: deb
+  - vulnerability: CVE-2026-84782  # High; fixed in 3.0.13-0ubuntu3.16
+    package:
+      name: libssl3t64
+      version: 3.0.13-0ubuntu3.6
+      type: deb
+
+  # openssl 3.0.13-0ubuntu3.6 (deb): upstream livekit/ingress:v1.5.0 has not picked up the fix yet.
+  - vulnerability: CVE-2026-45447  # High; fixed in 3.0.13-0ubuntu3.11
+    package:
+      name: openssl
+      version: 3.0.13-0ubuntu3.6
+      type: deb
+  - vulnerability: CVE-2026-84782  # High; fixed in 3.0.13-0ubuntu3.16
+    package:
+      name: openssl
+      version: 3.0.13-0ubuntu3.6
+      type: deb
+
+  # --- livekit/egress:v1.15.0 ---
+
+  # github.com/go-jose/go-jose/v4 v4.1.4 (go-module): upstream livekit/egress:v1.15.0 has not picked up the fix yet.
+  - vulnerability: GHSA-mgcc-cww5-fp2q  # High; fixed in 4.1.6
+    package:
+      name: github.com/go-jose/go-jose/v4
+      version: v4.1.4
+      type: go-module
+
+  # golang.org/x/net v0.58.0 (go-module): upstream livekit/egress:v1.15.0 has not picked up the fix yet.
+  - vulnerability: GO-2026-6603  # High; fixed in 0.60.0
+    package:
+      name: golang.org/x/net
+      version: v0.58.0
+      type: go-module
+  - vulnerability: GO-2026-6610  # High; fixed in 0.60.0
+    package:
+      name: golang.org/x/net
+      version: v0.58.0
+      type: go-module
+  - vulnerability: GO-2026-6611  # High; fixed in 0.60.0
+    package:
+      name: golang.org/x/net
+      version: v0.58.0
+      type: go-module
+  - vulnerability: GO-2026-6612  # Critical; fixed in 0.60.0
+    package:
+      name: golang.org/x/net
+      version: v0.58.0
+      type: go-module
+  - vulnerability: GO-2026-6617  # High; fixed in 0.60.0
+    package:
+      name: golang.org/x/net
+      version: v0.58.0
+      type: go-module
+
+  # Go toolchain (stdlib) go1.26.8 (go-module): upstream livekit/egress:v1.15.0 has not picked up the fix yet.
+  - vulnerability: GO-2026-6603  # High; fixed in 1.26.9
+    package:
+      name: stdlib
+      version: go1.26.8
+      type: go-module
+  - vulnerability: GO-2026-6605  # High; fixed in 1.26.9, 1.27.2
+    package:
+      name: stdlib
+      version: go1.26.8
+      type: go-module
+  - vulnerability: GO-2026-6607  # High; fixed in 1.26.9, 1.27.2
+    package:
+      name: stdlib
+      version: go1.26.8
+      type: go-module
+  - vulnerability: GO-2026-6608  # High; fixed in 1.26.9, 1.27.2
+    package:
+      name: stdlib
+      version: go1.26.8
+      type: go-module
+  - vulnerability: GO-2026-6609  # High; fixed in 1.26.9, 1.27.2
+    package:
+      name: stdlib
+      version: go1.26.8
+      type: go-module
+  - vulnerability: GO-2026-6610  # High; fixed in 1.26.9
+    package:
+      name: stdlib
+      version: go1.26.8
+      type: go-module
+  - vulnerability: GO-2026-6611  # High; fixed in 1.26.9
+    package:
+      name: stdlib
+      version: go1.26.8
+      type: go-module
+  - vulnerability: GO-2026-6612  # Critical; fixed in 1.26.9
+    package:
+      name: stdlib
+      version: go1.26.8
+      type: go-module
+  - vulnerability: GO-2026-6613  # High; fixed in 1.26.9, 1.27.2
+    package:
+      name: stdlib
+      version: go1.26.8
+      type: go-module
+  - vulnerability: GO-2026-6617  # High; fixed in 1.26.9
+    package:
+      name: stdlib
+      version: go1.26.8
+      type: go-module

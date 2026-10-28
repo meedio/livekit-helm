@@ -9,8 +9,9 @@ image:
   pullPolicy: IfNotPresent
   # Defaults to the chart appVersion.
   tag: ""
-  # Optional sha256 digest; when set the pull is pinned to it (repository:tag@digest).
-  digest: ""
+  # sha256 digest of the multi-arch index of the default tag; the pull is pinned to it
+  # (repository:tag@digest). Set to "" when overriding repository or tag.
+  digest: sha256:2e1d3fcf10bfaebddaea74dc8b965410cda6377ed154451361b86ab3a9ee9f99
 
 ingress:
   logging:
