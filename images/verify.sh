@@ -16,12 +16,13 @@ ref="${2:?usage: verify.sh <image> <image-ref>}"
 # shellcheck source=/dev/null
 . "$here/$name/image.env"
 
-work="$(mktemp -d)"
-container="$(docker create "$ref")"
-trap 'docker rm -f "$container" >/dev/null; rm -rf "$work"' EXIT
-docker cp "$container:$BINARY" "$work/bin"
+# Stream the binary between containers so no host directory has to be shared with Docker.
+image="$(docker create "$ref")"
+inspector="$(docker create -e GOTOOLCHAIN=local "$GO_IMAGE" go version -m "/tmp/$(basename "$BINARY")")"
+trap 'docker rm -f "$image" "$inspector" >/dev/null' EXIT
+docker cp "$image:$BINARY" - | docker cp - "$inspector:/tmp"
 
-info="$(docker run --rm -v "$work:/w:ro" -e GOTOOLCHAIN=local "$GO_IMAGE" go version -m /w/bin)"
+info="$(docker start -a "$inspector")"
 
 fail=0
 built="$(awk 'NR == 1 { print $2 }' <<<"$info")"
