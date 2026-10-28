@@ -71,7 +71,7 @@ spec:
         - name: {{ $root.Chart.Name }}
           securityContext:
             {{- toYaml $root.Values.securityContext | nindent 12 }}
-          image: "{{ $root.Values.image.repository }}:{{ $root.Values.image.tag | default $root.Chart.AppVersion }}"
+          image: {{ include "livekit-server.image" $root | quote }}
           imagePullPolicy: {{ $root.Values.image.pullPolicy }}
           args:
             - "--disable-strict-config"

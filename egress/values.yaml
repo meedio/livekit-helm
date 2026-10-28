@@ -7,7 +7,14 @@ replicaCount: 1
 image:
   repository: livekit/egress
   pullPolicy: IfNotPresent
+  # Defaults to the chart appVersion.
+  tag: ""
+  # Optional sha256 digest; when set the pull is pinned to it (repository:tag@digest).
+  digest: ""
 
+# Rendered as the egress config.yaml. Since egress v1.15.0 a request-supplied S3
+# assume_role_external_id is rejected; set s3_assume_role_external_id for a server-side
+# default, or s3_allow_request_assume_role_external_id: true (deprecated) to accept it.
 egress:
   log_level: info
   health_port: 8080

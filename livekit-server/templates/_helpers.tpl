@@ -114,3 +114,15 @@ Create the name of the service monitor to use
 {{- default "default" .Values.serviceMonitor.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Container image. A set image.digest pins the pull (repository:tag@digest).
+*/}}
+{{- define "livekit-server.image" -}}
+{{- $ref := printf "%s:%s" .Values.image.repository (.Values.image.tag | default .Chart.AppVersion) -}}
+{{- if .Values.image.digest -}}
+{{- printf "%s@%s" $ref .Values.image.digest -}}
+{{- else -}}
+{{- $ref -}}
+{{- end -}}
+{{- end }}

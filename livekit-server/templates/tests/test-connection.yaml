@@ -14,7 +14,7 @@ spec:
   {{- end }}
   containers:
     - name: wget
-      image: busybox
+      image: "{{ .Values.testImage.repository }}:{{ .Values.testImage.tag }}{{ with .Values.testImage.digest }}@{{ . }}{{ end }}"
       command: ['wget']
       args: ['{{ include "livekit-server.fullname" . }}:{{ .Values.loadBalancer.servicePort }}']
   restartPolicy: Never

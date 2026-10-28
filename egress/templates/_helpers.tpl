@@ -60,3 +60,15 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Container image. A set image.digest pins the pull (repository:tag@digest).
+*/}}
+{{- define "egress.image" -}}
+{{- $ref := printf "%s:%s" .Values.image.repository (.Values.image.tag | default .Chart.AppVersion) -}}
+{{- if .Values.image.digest -}}
+{{- printf "%s@%s" $ref .Values.image.digest -}}
+{{- else -}}
+{{- $ref -}}
+{{- end -}}
+{{- end }}

@@ -7,6 +7,10 @@ replicaCount: 1
 image:
   repository: livekit/ingress
   pullPolicy: IfNotPresent
+  # Defaults to the chart appVersion.
+  tag: ""
+  # Optional sha256 digest; when set the pull is pinned to it (repository:tag@digest).
+  digest: ""
 
 ingress:
   logging:

@@ -40,6 +40,9 @@ helm install <instance_name> livekit/livekit-server --namespace <namespace> --va
 
 ## For LiveKit Helm developers
 
+Patched server, ingress and egress images are built from [`images/`](images/README.md).
+Set `image.digest` in a chart's values to pin the pull to one build.
+
 Publishing requires helm-s3 plugin
 
 ```shell
