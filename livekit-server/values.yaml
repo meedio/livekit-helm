@@ -97,16 +97,36 @@ autoscaling:
 # One DaemonSet + ConfigMap per LiveKit node when each node has its own
 # media VIP. Empty (default) keeps a single workload and shared config.
 # Each entry must pin a node and set node_ip to that node's passthrough VIP.
-# TURN/TLS stays on one Service (turnLoadbalancer) selecting every instance.
+# TURN/TLS stays on one Service (turnLoadbalancer) selecting every instance,
+# unless the instances set turn.domain.
+#
+# turn (optional) gives an instance its own TURN/TLS name, so a client on TURN
+# reaches the SFU that holds its room:
+#   domain      replaces livekit.turn.domain in that instance's config.
+#   secretName  TLS Secret for that name; livekit.turn.secretName when unset.
+# With turnLoadbalancer.enable the chart then renders one TURN Service per
+# instance (<fullname>-<name>-turn) instead of the shared one. Every instance
+# must set turn.domain, or none. Each Service takes its own address from:
+#   loadBalancerIP, nodePort   per instance; livekit.turn.loadBalancerIP and
+#                              livekit.turn.nodePort must be unset.
+#   loadBalancerAnnotations    merged over livekit.turn.loadBalancerAnnotations.
 instances: []
   # - name: lk-0
   #   node_ip: 203.0.113.10
   #   nodeSelector:
   #     kubernetes.io/hostname: k8s-worker-livekit-0
+  #   turn:
+  #     domain: turn-0.myhost.com
+  #     secretName: <tlssecret-0>
+  #     # loadBalancerIP: <ip>
   # - name: lk-1
   #   node_ip: 203.0.113.11
   #   nodeSelector:
   #     kubernetes.io/hostname: k8s-worker-livekit-1
+  #   turn:
+  #     domain: turn-1.myhost.com
+  #     secretName: <tlssecret-1>
+  #     # loadBalancerIP: <ip>
 
 # if LiveKit should run only on specific nodes
 # this can be used to isolate designated nodes

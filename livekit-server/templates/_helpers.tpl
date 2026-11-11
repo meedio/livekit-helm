@@ -85,8 +85,47 @@ livekit.io/instance: {{ $inst.name | quote }}
 {{- end }}
 
 {{/*
+The TURN name an instance sets for itself (instances[].turn.domain). Empty when
+the instance uses the shared livekit.turn.domain.
+*/}}
+{{- define "livekit-server.instanceTurnDomain" -}}
+{{- $inst := index . "instance" -}}
+{{- if and $inst $inst.turn -}}
+{{- default "" $inst.turn.domain -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Secret with the TURN certificate of one instance: instances[].turn.secretName
+when set, otherwise the shared livekit.turn.secretName.
+*/}}
+{{- define "livekit-server.instanceTurnSecretName" -}}
+{{- $root := index . "root" -}}
+{{- $inst := index . "instance" -}}
+{{- $own := "" -}}
+{{- if and $inst $inst.turn -}}
+{{- $own = default "" $inst.turn.secretName -}}
+{{- end -}}
+{{- default "" (default $root.Values.livekit.turn.secretName $own) -}}
+{{- end }}
+
+{{/*
+Number of instances that set their own TURN name.
+*/}}
+{{- define "livekit-server.instanceTurnDomainCount" -}}
+{{- $count := 0 -}}
+{{- range $inst := default list .Values.instances -}}
+{{- if include "livekit-server.instanceTurnDomain" (dict "instance" $inst) -}}
+{{- $count = add1 $count -}}
+{{- end -}}
+{{- end -}}
+{{- $count -}}
+{{- end }}
+
+{{/*
 LiveKit server config for one instance. Sets rtc.node_ip and disables STUN
-discovery when the instance lists a media VIP.
+discovery when the instance lists a media VIP. Sets turn.domain when the
+instance has its own TURN name.
 */}}
 {{- define "livekit-server.instanceLivekitConfig" -}}
 {{- $root := index . "root" -}}
@@ -100,6 +139,12 @@ discovery when the instance lists a media VIP.
 {{- $_ := set $rtc "node_ip" $inst.node_ip -}}
 {{- $_ := set $rtc "use_external_ip" false -}}
 {{- $_ := set $cfg "rtc" $rtc -}}
+{{- end -}}
+{{- $turnDomain := include "livekit-server.instanceTurnDomain" . -}}
+{{- if $turnDomain -}}
+{{- $turn := default dict $cfg.turn -}}
+{{- $_ := set $turn "domain" $turnDomain -}}
+{{- $_ := set $cfg "turn" $turn -}}
 {{- end -}}
 {{- toYaml $cfg -}}
 {{- end }}

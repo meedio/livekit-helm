@@ -13,6 +13,17 @@ render() {
   helm template render "$root/$chart" "$@" >/dev/null
 }
 
+# A layout the chart must refuse to render.
+render_fails() {
+  local name="$1" chart="$2"
+  shift 2
+  echo "==> $chart: $name (must fail)"
+  if helm template render "$root/$chart" "$@" >/dev/null 2>&1; then
+    echo "expected the render to fail: $name" >&2
+    exit 1
+  fi
+}
+
 keys=(--set livekit.keys.devkey=secret --set livekit.redis.address=redis:6379)
 turn=(--set livekit.turn.enabled=true --set livekit.turn.domain=turn.example.com
   --set livekit.turn.tls_port=3478 --set livekit.turn.udp_port=443
@@ -22,6 +33,10 @@ instances=(--set deploymentType=DaemonSet
   --set 'instances[0].nodeSelector.kubernetes\.io/hostname=node-0'
   --set 'instances[1].name=lk-1' --set 'instances[1].node_ip=203.0.113.11'
   --set 'instances[1].nodeSelector.kubernetes\.io/hostname=node-1')
+turn_name_0=(--set 'instances[0].turn.domain=turn-0.example.com'
+  --set 'instances[0].turn.secretName=turn-0-tls')
+turn_name_1=(--set 'instances[1].turn.domain=turn-1.example.com'
+  --set 'instances[1].turn.secretName=turn-1-tls')
 
 render "defaults" livekit-server
 render "Deployment, TURN/TLS, load balancer with test hook" livekit-server \
@@ -29,6 +44,15 @@ render "Deployment, TURN/TLS, load balancer with test hook" livekit-server \
 render "DaemonSet with host networking" livekit-server \
   "${keys[@]}" --set deploymentType=DaemonSet --set hostNetwork=true
 render "per-node instances with TURN/TLS" livekit-server "${keys[@]}" "${turn[@]}" "${instances[@]}"
+render "per-node instances, each with its own TURN name and Service" livekit-server \
+  "${keys[@]}" "${turn[@]}" "${instances[@]}" "${turn_name_0[@]}" "${turn_name_1[@]}"
+render "per-node instances, own TURN names, no TURN Service" livekit-server \
+  "${keys[@]}" "${turn[@]}" "${instances[@]}" "${turn_name_0[@]}" --set turnLoadbalancer.enable=false
+render_fails "TURN Service with only some instances on their own TURN name" livekit-server \
+  "${keys[@]}" "${turn[@]}" "${instances[@]}" "${turn_name_0[@]}"
+render_fails "shared TURN nodePort with per-instance TURN Services" livekit-server \
+  "${keys[@]}" "${turn[@]}" "${instances[@]}" "${turn_name_0[@]}" "${turn_name_1[@]}" \
+  --set livekit.turn.serviceType=NodePort --set livekit.turn.nodePort=30443
 render "keys in a secret" livekit-server \
   --set livekit.key_file=keys.yaml --set storeKeysInSecret.enabled=true \
   --set storeKeysInSecret.keys.devkey=secret

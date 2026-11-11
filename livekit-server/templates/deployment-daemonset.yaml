@@ -172,7 +172,7 @@ spec:
       {{- if and $root.Values.livekit.turn.enabled $root.Values.livekit.turn.tls_port (not $root.Values.livekit.turn.external_tls) }}
         - name: lkturncert
           secret:
-            secretName: {{ required "tls secret required if turn enabled" $root.Values.livekit.turn.secretName }}
+            secretName: {{ required "tls secret required if turn enabled" (include "livekit-server.instanceTurnSecretName" $ctx) }}
       {{- end }}
       {{- end }}
       {{- if $ns }}
