@@ -2,9 +2,15 @@
 
 LiveKit {{ .Values.image.tag | default .Chart.AppVersion }} has been deployed!
 
+{{- $root := . }}
+{{- $ownTurnNames := int (include "livekit-server.instanceTurnDomainCount" .) }}
 {{- if .Values.instances }}
 Per-node instances ({{ len .Values.instances }}): each SFU advertises its own media VIP (rtc.node_ip).
+{{- if $ownTurnNames }}
+TURN/TLS: {{ $ownTurnNames }} of {{ len .Values.instances }} instances advertise their own TURN name (instances[].turn.domain).
+{{- else }}
 TURN/TLS still uses the shared {{ include "livekit-server.fullname" . }}-turn Service.
+{{- end }}
 {{- end }}
 
 Please ensure that the following ports on the nodes are open on your firewall.
@@ -44,7 +50,19 @@ To determine the load balancer address, run:
 Load balancer has been disabled
 {{- end }}
 
-{{- if and .Values.livekit.turn.enabled .Values.livekit.turn.tls_port (not .Values.livekit.turn.external_tls) }}
+{{- if and .Values.livekit.turn.enabled .Values.livekit.turn.tls_port $ownTurnNames }}
+
+Each TURN/TLS name must resolve to an address that reaches only its own instance:
+{{- range .Values.instances }}
+  - {{ include "livekit-server.instanceTurnDomain" (dict "instance" .) | default $root.Values.livekit.turn.domain }} -> instance {{ .name }}
+    {{- if $root.Values.turnLoadbalancer.enable }} (service {{ include "livekit-server.instanceFullname" (dict "root" $root "instance" .) }}-turn){{ end }}
+{{- end }}
+{{- if .Values.turnLoadbalancer.enable }}
+To determine the Service addresses, run:
+  $ kubectl get --namespace {{ .Release.Namespace }} service -l app.kubernetes.io/instance={{ .Release.Name }},livekit.io/instance
+{{- end }}
+
+{{- else if and .Values.livekit.turn.enabled .Values.livekit.turn.tls_port (not .Values.livekit.turn.external_tls) }}
 
 TURN/TLS has been deployed behind a load balancer, to determine its address, run:
   $ kubectl get --namespace {{ .Release.Namespace }} service {{ include "livekit-server.fullname" . }}-turn

@@ -1,4 +1,6 @@
 {{- if and (and .Values.livekit.turn.enabled .Values.livekit.turn.tls_port) .Values.turnLoadbalancer.enable }}
+{{- $ownNames := int (include "livekit-server.instanceTurnDomainCount" .) }}
+{{- if not $ownNames }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -26,4 +28,56 @@ spec:
       {{- end }}
   selector:
     {{- include "livekit-server.selectorLabels" . | nindent 4 }}
+{{- else }}
+{{- /*
+Instances with their own TURN name: one Service per instance, selecting only
+that instance's pods, so a client that resolves an instance's name reaches the
+SFU that issued it. A Service selector cannot leave instances out, so a shared
+Service next to these would send clients to the wrong SFU.
+*/}}
+{{- $root := . }}
+{{- $turn := .Values.livekit.turn }}
+{{- if ne $ownNames (len .Values.instances) }}
+{{- fail (printf "instances: %d of %d entries set turn.domain. With turnLoadbalancer.enable every instance needs its own turn.domain, or none: the chart renders one TURN Service per instance or one shared Service, not both." $ownNames (len .Values.instances)) }}
+{{- end }}
+{{- if or $turn.loadBalancerIP $turn.nodePort }}
+{{- fail "livekit.turn.loadBalancerIP and livekit.turn.nodePort belong to the shared TURN Service. Instances with their own turn.domain get one Service each: set instances[].turn.loadBalancerIP or instances[].turn.nodePort instead." }}
+{{- end }}
+{{- $type := default "LoadBalancer" $turn.serviceType }}
+{{- range $i, $inst := .Values.instances }}
+{{- if $i }}
+---
+{{- end }}
+{{- $ctx := dict "root" $root "instance" $inst }}
+{{- $annotations := merge (dict) (default dict $inst.turn.loadBalancerAnnotations) (default dict $turn.loadBalancerAnnotations) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: '{{ include "livekit-server.instanceFullname" $ctx }}-turn'
+  labels:
+    {{- include "livekit-server.labels" $root | nindent 4 }}
+    livekit.io/instance: {{ required "instances[].name is required when the instance sets turn.domain" $inst.name | quote }}
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ $type }}
+  {{- if $inst.turn.loadBalancerIP }}
+  loadBalancerIP: {{ $inst.turn.loadBalancerIP }}
+  {{- end }}
+  {{- if eq $type "NodePort" }}
+  externalTrafficPolicy: {{ default "Local" $turn.externalTrafficPolicy }}
+  {{- end }}
+  ports:
+    - port: 443
+      targetPort: {{ $turn.tls_port }}
+      protocol: TCP
+      {{- if and (eq $type "NodePort") $inst.turn.nodePort }}
+      nodePort: {{ $inst.turn.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "livekit-server.instancePodLabels" $ctx | nindent 4 }}
+{{- end }}
+{{- end }}
 {{- end }}
