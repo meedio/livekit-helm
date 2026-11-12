@@ -92,6 +92,25 @@ spec:
             - name: LIVEKIT_TURN_KEY
               value: /etc/lkcert/tls.key
             {{- end }}
+            {{- if and (include "livekit-server.redisSentinelActive" $root) $root.Values.redisSentinel.existingSecret }}
+            {{- $redis := default dict $root.Values.livekit.redis }}
+            {{- with $root.Values.redisSentinel }}
+            {{- if not $redis.password }}
+            - name: LIVEKIT_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .existingSecret $root | quote }}
+                  key: {{ .passwordKey | quote }}
+            {{- end }}
+            {{- if and .sentinelPasswordKey (not $redis.sentinel_password) }}
+            - name: LIVEKIT_REDIS_SENTINEL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .existingSecret $root | quote }}
+                  key: {{ .sentinelPasswordKey | quote }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ $root.Values.livekit.port }}

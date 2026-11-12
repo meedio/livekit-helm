@@ -123,14 +123,49 @@ Number of instances that set their own TURN name.
 {{- end }}
 
 {{/*
+"true" when the chart fills in the Sentinels of a redis-ha release:
+redisSentinel.enabled is set and livekit.redis names no Redis itself.
+*/}}
+{{- define "livekit-server.redisSentinelActive" -}}
+{{- $wiring := default dict .Values.redisSentinel -}}
+{{- $redis := default dict .Values.livekit.redis -}}
+{{- if and $wiring.enabled (not (or $redis.address $redis.sentinel_addresses $redis.cluster_addresses)) -}}
+true
+{{- end -}}
+{{- end }}
+
+{{/*
+Sentinel addresses of the redis-ha release, one per replica:
+<serviceName>-server-<n>.<serviceName>:<port>, as a JSON list.
+*/}}
+{{- define "livekit-server.redisSentinelAddresses" -}}
+{{- $wiring := .Values.redisSentinel -}}
+{{- $service := tpl (required "redisSentinel.serviceName is required with redisSentinel.enabled: the headless Service of the redis-ha StatefulSet" $wiring.serviceName) . -}}
+{{- $addresses := list -}}
+{{- range $n := until (int $wiring.replicas) -}}
+{{- $addresses = append $addresses (printf "%s-server-%d.%s:%d" $service $n $service (int $wiring.port)) -}}
+{{- end -}}
+{{- toJson $addresses -}}
+{{- end }}
+
+{{/*
 LiveKit server config for one instance. Sets rtc.node_ip and disables STUN
 discovery when the instance lists a media VIP. Sets turn.domain when the
-instance has its own TURN name.
+instance has its own TURN name. Sets redis.sentinel_addresses when the chart
+fills in the Sentinels of a redis-ha release.
 */}}
 {{- define "livekit-server.instanceLivekitConfig" -}}
 {{- $root := index . "root" -}}
 {{- $inst := index . "instance" -}}
 {{- $cfg := deepCopy $root.Values.livekit -}}
+{{- if include "livekit-server.redisSentinelActive" $root -}}
+{{- $redis := default dict $cfg.redis -}}
+{{- $_ := set $redis "sentinel_addresses" (include "livekit-server.redisSentinelAddresses" $root | fromJsonArray) -}}
+{{- if not $redis.sentinel_master_name -}}
+{{- $_ := set $redis "sentinel_master_name" $root.Values.redisSentinel.masterName -}}
+{{- end -}}
+{{- $_ := set $cfg "redis" $redis -}}
+{{- end -}}
 {{- if and $inst $inst.node_ip -}}
 {{- $rtc := default dict $cfg.rtc -}}
 {{- if not $rtc -}}
