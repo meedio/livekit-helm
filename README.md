@@ -78,6 +78,37 @@ instances:
   Point each name at a load balancer that forwards 443 to `turn.tls_port` on
   that instance's node only.
 
+### Redis from a redis-ha release (`redisSentinel`)
+
+More than one SFU needs Redis: without it each SFU runs alone and rooms are not
+shared. When Redis runs next to LiveKit as a
+[redis-ha](https://github.com/DandyDeveloper/charts/tree/master/charts/redis-ha)
+StatefulSet with Sentinel, the chart can write its Sentinels into the LiveKit
+config and take the password from its Secret, so no values file holds the
+password. Needs chart 1.14.0 or later.
+
+```yaml
+redisSentinel:
+  enabled: true
+  serviceName: "{{ .Release.Name }}-redis-ha"
+  existingSecret: redis-credentials
+```
+
+- `livekit.redis.sentinel_addresses` gets one entry per replica,
+  `<serviceName>-server-<n>.<serviceName>:<port>` (`replicas`, default 3;
+  `port`, default 26379). `serviceName` is the redis-ha fullname and is rendered
+  as a template. `sentinel_master_name` becomes `masterName` (`mymaster`) when
+  `livekit.redis` does not set it.
+- The pods read `LIVEKIT_REDIS_PASSWORD` from `existingSecret`, key
+  `passwordKey`, and `LIVEKIT_REDIS_SENTINEL_PASSWORD` from key
+  `sentinelPasswordKey` (both `redis-password`). LiveKit reads these variables
+  over its config. Set `sentinelPasswordKey: ""` when Sentinel asks for no
+  password, and leave `existingSecret` empty when Redis asks for none.
+- Values win: with `livekit.redis.address`, `sentinel_addresses` or
+  `cluster_addresses` set, the chart adds neither addresses nor password
+  variables. A password in `livekit.redis.password` or `sentinel_password` keeps
+  its variable out of the pods.
+
 Then install the chart
 
 ```shell

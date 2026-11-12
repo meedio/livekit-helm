@@ -94,6 +94,33 @@ autoscaling:
   targetCPUUtilizationPercentage: 60
   # targetMemoryUtilizationPercentage: 80
 
+# Redis installed next to LiveKit as a redis-ha StatefulSet with Sentinel, in the
+# release namespace (the livekit-stack chart installs one). With enabled, and as
+# long as livekit.redis sets no address, sentinel_addresses or cluster_addresses,
+# the chart:
+#   - fills livekit.redis.sentinel_addresses with one entry per replica,
+#     <serviceName>-server-<n>.<serviceName>:<port>, and sets
+#     sentinel_master_name to masterName when it is unset;
+#   - gives the pods the passwords from existingSecret, as LIVEKIT_REDIS_PASSWORD
+#     and LIVEKIT_REDIS_SENTINEL_PASSWORD, so no values file holds them. LiveKit
+#     reads these variables over its config.
+# livekit.redis.password and livekit.redis.sentinel_password win: a password set
+# there keeps its variable out of the pods.
+redisSentinel:
+  enabled: false
+  # Headless Service of the redis-ha StatefulSet, which is the redis-ha fullname.
+  # Rendered as a template, for example "{{ .Release.Name }}-redis-ha".
+  serviceName: ""
+  # Replicas of the redis-ha StatefulSet. Each runs one Sentinel.
+  replicas: 3
+  port: 26379
+  masterName: mymaster
+  # Secret with the Redis password. Empty: the pods get no password variable.
+  existingSecret: ""
+  passwordKey: redis-password
+  # Key of the Sentinel password. Empty when Sentinel asks for none.
+  sentinelPasswordKey: redis-password
+
 # One DaemonSet + ConfigMap per LiveKit node when each node has its own
 # media VIP. Empty (default) keeps a single workload and shared config.
 # Each entry must pin a node and set node_ip to that node's passthrough VIP.
