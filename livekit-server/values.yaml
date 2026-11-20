@@ -120,6 +120,20 @@ redisSentinel:
   passwordKey: redis-password
   # Key of the Sentinel password. Empty when Sentinel asks for none.
   sentinelPasswordKey: redis-password
+  # TLS to Redis and Sentinel, for a redis-ha release that runs TLS-only (its
+  # redis.tlsPort and sentinel.tlsPort, the plaintext ports 0). The pods mount
+  # ca.crt of secretName, and unless livekit.redis.tls is set the chart sets it
+  # to enabled, ca_cert_file and server_name. Sentinel hands out the IP addresses
+  # of Redis, so the certificate is checked for serverName, not for the address
+  # dialled: the certificate must name it.
+  tls:
+    enabled: false
+    # Secret with the CA of the Redis certificate in key ca.crt, for example the
+    # cert-manager Secret of that certificate. Only ca.crt is mounted.
+    secretName: ""
+    # Name checked in the Redis certificate, rendered as a template. Empty:
+    # serviceName.
+    serverName: ""
 
 # One DaemonSet + ConfigMap per LiveKit node when each node has its own
 # media VIP. Empty (default) keeps a single workload and shared config.

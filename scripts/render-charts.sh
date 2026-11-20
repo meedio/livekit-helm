@@ -102,6 +102,22 @@ render_has "Sentinel addresses in the values win over redisSentinel" livekit-ser
   -- "${redis_ha[@]}" --set 'livekit.redis.sentinel_addresses[0]=other-0:26379'
 render_fails "redisSentinel without serviceName" livekit-server \
   --set livekit.keys.devkey=secret --set redisSentinel.enabled=true
+redis_tls=(--set redisSentinel.tls.enabled=true --set 'redisSentinel.tls.secretName=\{\{ .Release.Name \}\}-redis-tls')
+render_has "redis-ha TLS-only: the CA mounted alone, redis.tls checking the service name" livekit-server \
+  'ca_cert_file: /etc/livekit-redis-ca/ca\.crt' 'server_name: render-redis$' 'enabled: true' \
+  'mountPath: /etc/livekit-redis-ca' 'secretName: "render-redis-tls"' '- key: ca\.crt' '!key: tls\.key' \
+  -- "${redis_ha[@]}" "${redis_tls[@]}"
+render_has "redis-ha TLS-only per instance, a server name of its own" livekit-server \
+  'server_name: redis\.internal$' 'render-redis-server-0\.render-redis:26379' \
+  -- "${redis_ha[@]}" "${redis_tls[@]}" "${instances[@]}" --set redisSentinel.tls.serverName=redis.internal
+render_has "livekit.redis.tls in the values wins over redisSentinel.tls" livekit-server \
+  'ca_cert_file: /own/ca\.crt' '!server_name: render-redis' 'mountPath: /etc/livekit-redis-ca' \
+  -- "${redis_ha[@]}" "${redis_tls[@]}" --set livekit.redis.tls.enabled=true --set livekit.redis.tls.ca_cert_file=/own/ca.crt
+render_has "redisSentinel without tls renders no Redis TLS" livekit-server \
+  '!ca_cert_file' '!redis-ca' \
+  -- "${redis_ha[@]}"
+render_fails "redisSentinel.tls without secretName" livekit-server \
+  "${redis_ha[@]}" --set redisSentinel.tls.enabled=true
 render "keys in a secret" livekit-server \
   --set livekit.key_file=keys.yaml --set storeKeysInSecret.enabled=true \
   --set storeKeysInSecret.keys.devkey=secret
