@@ -109,6 +109,26 @@ redisSentinel:
   variables. A password in `livekit.redis.password` or `sentinel_password` keeps
   its variable out of the pods.
 
+When the redis-ha release runs TLS-only (its `redis.tlsPort` and
+`sentinel.tlsPort`, with the plaintext ports 0), turn on `tls` (chart 1.15.0 or
+later):
+
+```yaml
+redisSentinel:
+  tls:
+    enabled: true
+    secretName: "{{ .Release.Name }}-redis-ha-tls"
+```
+
+- The pods mount only `ca.crt` of `secretName` (rendered as a template), at
+  `/etc/livekit-redis-ca`; the certificate's key stays out of them.
+- `livekit.redis.tls` becomes `enabled: true`, `ca_cert_file` and `server_name`
+  (LiveKit's `redis.tls` keys). Sentinel hands out the IP addresses of Redis, so
+  LiveKit checks the certificate for `server_name`, not for the address it dials:
+  the Redis certificate must carry that name. It is `serviceName`, or
+  `tls.serverName` when set (both rendered as templates).
+- A `livekit.redis.tls` in the values wins; the CA is still mounted.
+
 Then install the chart
 
 ```shell

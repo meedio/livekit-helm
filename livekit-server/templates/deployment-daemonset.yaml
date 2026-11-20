@@ -167,7 +167,8 @@ spec:
               port: http
           resources:
             {{- toYaml $root.Values.resources | nindent 12 }}
-          {{- if or $root.Values.storeKeysInSecret.enabled (and $root.Values.livekit.turn.enabled $root.Values.livekit.turn.tls_port (not $root.Values.livekit.turn.external_tls)) }}
+          {{- $redisTls := include "livekit-server.redisTls" $root }}
+          {{- if or $root.Values.storeKeysInSecret.enabled (and $root.Values.livekit.turn.enabled $root.Values.livekit.turn.tls_port (not $root.Values.livekit.turn.external_tls)) $redisTls }}
           volumeMounts:
           {{- if $root.Values.storeKeysInSecret.enabled }}
             - name: keys-volume
@@ -179,8 +180,13 @@ spec:
               mountPath: /etc/lkcert
               readOnly: true
           {{- end }}
+          {{- if $redisTls }}
+            - name: redis-ca
+              mountPath: {{ include "livekit-server.redisCaDir" $root }}
+              readOnly: true
           {{- end }}
-      {{- if or $root.Values.storeKeysInSecret.enabled (and $root.Values.livekit.turn.enabled $root.Values.livekit.turn.tls_port (not $root.Values.livekit.turn.external_tls)) }}
+          {{- end }}
+      {{- if or $root.Values.storeKeysInSecret.enabled (and $root.Values.livekit.turn.enabled $root.Values.livekit.turn.tls_port (not $root.Values.livekit.turn.external_tls)) $redisTls }}
       volumes:
         {{- if $root.Values.storeKeysInSecret.enabled }}
         - name: keys-volume
@@ -192,6 +198,15 @@ spec:
         - name: lkturncert
           secret:
             secretName: {{ required "tls secret required if turn enabled" (include "livekit-server.instanceTurnSecretName" $ctx) }}
+      {{- end }}
+      {{- if $redisTls }}
+        {{- /* Only the CA: the Redis certificate's Secret also holds its key. */}}
+        - name: redis-ca
+          secret:
+            secretName: {{ tpl (required "redisSentinel.tls.secretName is required with redisSentinel.tls.enabled: the Secret with the CA of the Redis certificate (key ca.crt)" $root.Values.redisSentinel.tls.secretName) $root | quote }}
+            items:
+              - key: ca.crt
+                path: ca.crt
       {{- end }}
       {{- end }}
       {{- if $ns }}

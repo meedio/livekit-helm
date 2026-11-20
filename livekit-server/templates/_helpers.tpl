@@ -135,6 +135,34 @@ true
 {{- end }}
 
 {{/*
+"true" when the pods talk TLS to the redis-ha release: redisSentinel.enabled and
+redisSentinel.tls.enabled. The pods then mount ca.crt of redisSentinel.tls.secretName.
+*/}}
+{{- define "livekit-server.redisTls" -}}
+{{- $wiring := default dict .Values.redisSentinel -}}
+{{- if and $wiring.enabled (dig "tls" "enabled" false $wiring) -}}
+true
+{{- end -}}
+{{- end }}
+
+{{/*
+Directory of the Redis CA in the pods (file ca.crt).
+*/}}
+{{- define "livekit-server.redisCaDir" -}}
+/etc/livekit-redis-ca
+{{- end }}
+
+{{/*
+Name LiveKit checks in the Redis certificate: redisSentinel.tls.serverName, else
+redisSentinel.serviceName, rendered as templates.
+*/}}
+{{- define "livekit-server.redisTlsServerName" -}}
+{{- $wiring := .Values.redisSentinel -}}
+{{- $name := dig "tls" "serverName" "" $wiring | default $wiring.serviceName -}}
+{{- tpl (required "redisSentinel.tls.serverName or redisSentinel.serviceName is required with redisSentinel.tls.enabled: the name the Redis certificate carries" $name) . -}}
+{{- end }}
+
+{{/*
 Sentinel addresses of the redis-ha release, one per replica:
 <serviceName>-server-<n>.<serviceName>:<port>, as a JSON list.
 */}}
@@ -152,7 +180,8 @@ Sentinel addresses of the redis-ha release, one per replica:
 LiveKit server config for one instance. Sets rtc.node_ip and disables STUN
 discovery when the instance lists a media VIP. Sets turn.domain when the
 instance has its own TURN name. Sets redis.sentinel_addresses when the chart
-fills in the Sentinels of a redis-ha release.
+fills in the Sentinels of a redis-ha release, and redis.tls when that release
+runs TLS-only (redisSentinel.tls) and livekit.redis.tls is unset.
 */}}
 {{- define "livekit-server.instanceLivekitConfig" -}}
 {{- $root := index . "root" -}}
@@ -163,6 +192,13 @@ fills in the Sentinels of a redis-ha release.
 {{- $_ := set $redis "sentinel_addresses" (include "livekit-server.redisSentinelAddresses" $root | fromJsonArray) -}}
 {{- if not $redis.sentinel_master_name -}}
 {{- $_ := set $redis "sentinel_master_name" $root.Values.redisSentinel.masterName -}}
+{{- end -}}
+{{- $_ := set $cfg "redis" $redis -}}
+{{- end -}}
+{{- if include "livekit-server.redisTls" $root -}}
+{{- $redis := default dict $cfg.redis -}}
+{{- if not $redis.tls -}}
+{{- $_ := set $redis "tls" (dict "enabled" true "ca_cert_file" (printf "%s/ca.crt" (include "livekit-server.redisCaDir" $root)) "server_name" (include "livekit-server.redisTlsServerName" $root)) -}}
 {{- end -}}
 {{- $_ := set $cfg "redis" $redis -}}
 {{- end -}}
